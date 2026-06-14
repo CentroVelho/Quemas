@@ -73,8 +73,6 @@
             <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Coca-Cola_logo.svg" alt="Coca-Cola">
         </marquee>
     </div>
-        </marquee>
-    </div>
 
     <div class="container">
         <div id="menu" class="tela tela-ativa">
@@ -103,23 +101,23 @@
     <script>
         const dados = {
             "Fotos Aleatorias": ["Fotos/Desconhecido.jpeg", "Fotos/Desconhecido2.jpeg", "Fotos/Desconhecido3.jpeg", "Fotos/Desconhecido4.jpeg", "Fotos/Desconhecido5.jpeg", "Fotos/Desconhecido6.jpeg", "Fotos/Desconhecido7.jpeg", "Fotos/Desconhecido8.jpeg", "Fotos/Desconhecido9.jpeg"],
-            "Ligia[Mais 3 fotos]": ["Fotos/Ligia.jpeg", "Fotos/Ligia2.jpeg", "Fotos/Ligia3.jpeg", "Fotos/Ligia4.jpeg", "Fotos/Ligia5.jpeg"],
+            "Ligia": ["Fotos/Ligia.jpeg", "Fotos/Ligia2.jpeg", "Fotos/Ligia3.jpeg"],
             "Gabriel": ["Fotos/Capacete.jpeg", "Fotos/Capacete2.jpeg"],
-            "Lia[Mais 1 foto]": ["Fotos/Lia.jpeg", "Fotos/Lia2.jpeg","Fotos/Lia3.jpeg", "Fotos/Lia e Melissa.jpeg", "Fotos/Lia4.jpeg", "Fotos/Lia5.jpeg", "Fotos/Lia6.jpeg"],
+            "Lia": ["Fotos/Lia.jpeg", "Fotos/Lia2.jpeg","Fotos/Lia3.jpeg", "Fotos/Lia e Melissa.jpeg", "Fotos/Lia4.jpeg", "Fotos/Lia5.jpeg", "Fotos/Lia6.jpeg"],
             "Izake": ["Fotos/Izake.jpeg", "Fotos/Izake2.jpeg", "Fotos/Izake3.jpeg", "Fotos/Izake4.jpeg"],
             "Paulo": ["Fotos/Paulo.jpeg"],
-            "Jasmim[Mais 1 foto]": ["Fotos/Jasmim.jpeg", "Fotos/Jasmim2.jpeg", "Fotos/Jasmim3.jpeg", "Fotos/Jasmim4.jpeg", "Fotos/Jasmim5.jpeg"],
-            "Lara[Mais 1 foto]": ["Fotos/Lara.jpeg", "Fotos/Lara2.jpeg", "Fotos/Lara3.jpeg", "Fotos/Lara4.jpeg"],
+            "Jasmim": ["Fotos/Jasmim.jpeg", "Fotos/Jasmim2.jpeg", "Fotos/Jasmim3.jpeg", "Fotos/Jasmim4.jpeg", "Fotos/Jasmim5.jpeg"],
+            "Lara": ["Fotos/Lara.jpeg", "Fotos/Lara2.jpeg", "Fotos/Lara3.jpeg", "Fotos/Lara4.jpeg"],
             "Melissa": ["Fotos/Lia e Melissa.jpeg"],
-            "Juliana[Mais 3 fotos]": ["Fotos/Juliana.jpeg", "Fotos/Juliana2.jpeg", "Fotos/Juliana3.jpeg", "Fotos/Juliana4.jpeg", "Fotos/Juliana5.jpeg"],
+            "Juliana": ["Fotos/Juliana.jpeg", "Fotos/Juliana2.jpeg", "Fotos/Juliana3.jpeg", "Fotos/Juliana4.jpeg", "Fotos/Juliana5.jpeg"],
             "Jupar": ["Fotos/Jupar.jpeg"],
             "Davi": ["Fotos/Davi.jpeg"],
-            "Clarisse[NOVO]": ["Fotos/Clarisse.jpeg"],
-            "Carol[NOVO]": ["Fotos/Carol.jpeg"],
-            "Julia[NOVO]": ["Fotos/Julia.jpeg"],
-            "Alexicia[NOVO]": ["Fotos/Alexicia.jpeg"],
-            "Levi[NOVO]": ["Fotos/Levi.jpeg"],
-            "Maxsuel[NOVO]": ["Fotos/Maxsuel.jpeg"]
+            "Clarisse": ["Fotos/Clarisse.jpeg"],
+            "Carol": ["Fotos/Carol.jpeg"],
+            "Julia": ["Fotos/Julia.jpeg"],
+            "Alexicia": ["Fotos/Alexicia.jpeg"],
+            "Levi": ["Fotos/Levi.jpeg"],
+            "Maxsuel": ["Fotos/Maxsuel.jpeg"]
         };
 
         const menu = document.getElementById('lista-links');
@@ -147,7 +145,8 @@
         function filtrarNomes() {
             let input = document.getElementById('pesquisa').value.toLowerCase();
             document.querySelectorAll('.item-nome').forEach(el => {
-                el.style.display = (el.textContent.toLowerCase().includes(input)) ? "inline-block" : "none";
+                // Modificado para startsWith
+                el.style.display = (el.textContent.toLowerCase().startsWith(input)) ? "inline-block" : "none";
             });
         }
 
