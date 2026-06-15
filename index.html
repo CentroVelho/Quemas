@@ -188,8 +188,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     const sb = supabase.createClient('https://qhcmokmkgzvdwkygiekg.supabase.co', 'sb_publishable_JorRZtpYrnZXn4sSaSzodA_GBx3-r99');
+    let timerRanking = null;
 
-    // 1. Cria a tela de Ranking apenas uma vez
     if (!document.getElementById('tela-ranking')) {
         document.querySelector('.container').insertAdjacentHTML('beforeend',
             '<div id="tela-ranking" class="tela"><a class="botao botao-voltar" onclick="mudarTela(\'menu\')">⬅ Voltar</a><h2>🏆 Ranking</h2><div id="lista-ranking"></div></div>'
@@ -205,21 +205,17 @@
         data.forEach((p, index) => {
             let idAlbum = p.nome.replace(/[^a-zA-Z0-9]/g, "");
             let posicao = index + 1;
-
             let estilo = (index === 0) ? "background: linear-gradient(45deg, #ffd700, #ff8c00); color: #000; transform: scale(1.05);" :
                          (index === 1) ? "background: #c0c0c0; color: #000;" :
                          (index === 2) ? "background: #cd7f32; color: #fff;" : "background: #333; color: #fff;";
-
-            let destaque = (index === 0) ? "👑 1º LUGAR" :
-                           (index === 1) ? "🥈 2º LUGAR" :
-                           (index === 2) ? "🥉 3º LUGAR" : `📍 ${posicao}º LUGAR`;
+            let destaque = (index === 0) ? "👑 1º LUGAR" : (index === 1) ? "🥈 2º LUGAR" : (index === 2) ? "🥉 3º LUGAR" : `📍 ${posicao}º LUGAR`;
 
             html += `
             <div class="card" style="${estilo} margin:15px 0; padding:15px; border-radius:15px; font-weight:bold;">
                 <div style="font-size: 0.8em; margin-bottom:5px;">${destaque}</div>
-                <div style="margin:5px 0; font-size: 1.2em;">${p.nome}: <b>${p.votos} votos</b></div>
+                <div style="margin:5px 0; font-size: 1.2em;">${p.nome}: <b id="votos-${idAlbum}">${p.votos} votos</b></div>
                 <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
-                    <button class="botao" onclick="votar(this, '${p.nome}', ${p.votos})">⭐ Votar</button>
+                    <button class="botao" id="btn-${idAlbum}" onclick="votar(this, '${p.nome}', ${p.votos}, '${idAlbum}')">⭐ Votar</button>
                     <button class="botao" style="background: #2ed573;" onclick="mudarTela('${idAlbum}')">📸 Ver Fotos</button>
                 </div>
             </div>`;
@@ -227,16 +223,29 @@
         document.getElementById('lista-ranking').innerHTML = html;
     }
 
-    async function votar(btn, nome, v) {
+    async function votar(btn, nome, v, idAlbum) {
         btn.innerText = "Votando...";
         btn.disabled = true;
-        const novoVoto = v + 1;
 
-        // Atualiza o texto visual imediatamente
-        btn.parentElement.parentElement.querySelector('b').innerText = novoVoto + " votos";
+        // 1. Pega o valor atual direto do elemento na tela (que já pode ter sido alterado)
+        let textoVotos = document.getElementById(`votos-${idAlbum}`).innerText;
+        let votosAtuais = parseInt(textoVotos) || 0;
+        let novoVoto = votosAtuais + 1;
 
+        // 2. Atualiza a tela imediatamente
+        document.getElementById(`votos-${idAlbum}`).innerText = novoVoto + " votos";
+
+        // 3. Salva no banco
         await sb.from('ranking').update({ votos: novoVoto }).eq('nome', nome);
-        setTimeout(atualizarRanking, 300);
+
+        // 4. Atualiza o botão para o próximo clique ser correto
+        btn.innerText = "⭐ Votar";
+        btn.disabled = false;
+        btn.setAttribute("onclick", `votar(this, '${nome}', ${novoVoto}, '${idAlbum}')`);
+
+        // 5. Ranking só organiza após 5s de inatividade
+        clearTimeout(timerRanking);
+        timerRanking = setTimeout(atualizarRanking, 5000);
     }
 
     atualizarRanking();
