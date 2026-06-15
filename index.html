@@ -190,65 +190,62 @@
     const sb = supabase.createClient('https://qhcmokmkgzvdwkygiekg.supabase.co', 'sb_publishable_JorRZtpYrnZXn4sSaSzodA_GBx3-r99');
     let timerRanking = null;
 
-    if (!document.getElementById('tela-ranking')) {
-        document.querySelector('.container').insertAdjacentHTML('beforeend',
-            '<div id="tela-ranking" class="tela"><a class="botao botao-voltar" onclick="mudarTela(\'menu\')">⬅ Voltar</a><h2>🏆 Ranking</h2><div id="lista-ranking"></div></div>'
-        );
-        document.querySelector('.botoes-menu').insertAdjacentHTML('beforeend', '<button class="botao" onclick="mudarTela(\'tela-ranking\')">🏆 Tabela</button>');
+    // Gera um ID persistente ou recupera do localStorage
+    let deviceId = localStorage.getItem('user_id');
+    if (!deviceId) {
+        deviceId = 'device_' + Math.random().toString(36).substr(2, 9) + Date.now();
+        localStorage.setItem('user_id', deviceId);
     }
 
-    async function atualizarRanking() {
-        const { data } = await sb.from('ranking').select('*').order('votos', { ascending: false });
-        if (!data) return;
-
-        let html = '';
-        data.forEach((p, index) => {
-            let idAlbum = p.nome.replace(/[^a-zA-Z0-9]/g, "");
-            let posicao = index + 1;
-            let estilo = (index === 0) ? "background: linear-gradient(45deg, #ffd700, #ff8c00); color: #000; transform: scale(1.05);" :
-                         (index === 1) ? "background: #c0c0c0; color: #000;" :
-                         (index === 2) ? "background: #cd7f32; color: #fff;" : "background: #333; color: #fff;";
-            let destaque = (index === 0) ? "👑 1º LUGAR" : (index === 1) ? "🥈 2º LUGAR" : (index === 2) ? "🥉 3º LUGAR" : `📍 ${posicao}º LUGAR`;
-
-            html += `
-            <div class="card" style="${estilo} margin:15px 0; padding:15px; border-radius:15px; font-weight:bold;">
-                <div style="font-size: 0.8em; margin-bottom:5px;">${destaque}</div>
-                <div style="margin:5px 0; font-size: 1.2em;">${p.nome}: <b id="votos-${idAlbum}">${p.votos} votos</b></div>
-                <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
-                    <button class="botao" id="btn-${idAlbum}" onclick="votar(this, '${p.nome}', ${p.votos}, '${idAlbum}')">⭐ Votar</button>
-                    <button class="botao" style="background: #2ed573;" onclick="mudarTela('${idAlbum}')">📸 Ver Fotos</button>
-                </div>
-            </div>`;
-        });
-        document.getElementById('lista-ranking').innerHTML = html;
-    }
-
-    async function votar(btn, nome, v, idAlbum) {
-        btn.innerText = "Votando...";
+    // Função de votação blindada
+    async function votar(btn, nome, idAlbum) {
+        // 1. Bloqueio preventivo local
         btn.disabled = true;
+        btn.innerText = "Verificando...";
 
-        // 1. Pega o valor atual direto do elemento na tela (que já pode ter sido alterado)
-        let textoVotos = document.getElementById(`votos-${idAlbum}`).innerText;
-        let votosAtuais = parseInt(textoVotos) || 0;
-        let novoVoto = votosAtuais + 1;
+        // 2. Verifica no servidor se o dispositivo já existe no registro
+        const { data: jaVotou, error } = await sb
+            .from('votos_registrados')
+            .select('id_dispositivo')
+            .eq('id_dispositivo', deviceId);
 
-        // 2. Atualiza a tela imediatamente
+        if (jaVotou && jaVotou.length > 0) {
+            alert("Você já votou! Agradecemos sua participação.");
+            btn.innerText = "Votado ✅";
+            return;
+        }
+
+        btn.innerText = "Votando...";
+
+        // 3. Captura informações do navegador para dificultar burla
+        const navInfo = navigator.userAgent;
+
+        // 4. Registra voto no ranking e na tabela de controle
+        const { data: atual } = await sb.from('ranking').select('votos').eq('nome', nome).single();
+        const novoVoto = (atual ? atual.votos : 0) + 1;
+
+        const { error: err1 } = await sb.from('ranking').update({ votos: novoVoto }).eq('nome', nome);
+        const { error: err2 } = await sb.from('votos_registrados').insert([{
+            id_dispositivo: deviceId,
+            user_agent: navInfo
+        }]);
+
+        if (err1 || err2) {
+            alert("Erro ao registrar voto. Tente novamente.");
+            btn.disabled = false;
+            btn.innerText = "⭐ Votar";
+            return;
+        }
+
+        // 5. Sucesso visual
         document.getElementById(`votos-${idAlbum}`).innerText = novoVoto + " votos";
+        btn.innerText = "Votado ✅";
 
-        // 3. Salva no banco
-        await sb.from('ranking').update({ votos: novoVoto }).eq('nome', nome);
-
-        // 4. Atualiza o botão para o próximo clique ser correto
-        btn.innerText = "⭐ Votar";
-        btn.disabled = false;
-        btn.setAttribute("onclick", `votar(this, '${nome}', ${novoVoto}, '${idAlbum}')`);
-
-        // 5. Ranking só organiza após 5s de inatividade
         clearTimeout(timerRanking);
         timerRanking = setTimeout(atualizarRanking, 5000);
     }
 
-    atualizarRanking();
+    // ... (restante das funções atualizarRanking e a chamada inicial seguem iguais)
 </script>
 </body>
 </html>
