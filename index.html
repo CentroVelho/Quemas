@@ -1,191 +1,4 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeria Premium & Jogos</title>
-    <style>
-        :root { --cor-principal: #ff4757; --cor-secundaria: #2ed573; --fundo: #1e272e; --texto: #f1f2f6; }
-        body { font-family: 'Poppins', 'Segoe UI', sans-serif; background: var(--fundo); color: var(--texto); margin: 0; padding: 0; text-align: center; overflow-x: hidden; }
-
-        .patrocinadores { background: #111; padding: 10px 0; overflow: hidden; white-space: nowrap; border-bottom: 2px solid var(--cor-principal); }
-        .patrocinadores img { height: 40px; margin: 0 30px; filter: grayscale(100%); transition: 0.3s; vertical-align: middle; }
-        .patrocinadores img:hover { filter: grayscale(0%); transform: scale(1.1); }
-
-        .container { max-width: 800px; margin: 20px auto; padding: 20px; }
-        .tela { display: none; background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 20px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); }
-        .tela-ativa { display: block; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        h1 { font-size: 2.5em; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px var(--cor-principal); margin-bottom: 10px; }
-
-        #pesquisa { width: 80%; padding: 15px; margin-bottom: 25px; border-radius: 30px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 16px; text-align: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); outline: none; }
-        #pesquisa::placeholder { color: #aaa; }
-        #pesquisa:focus { box-shadow: 0 0 15px var(--cor-principal); }
-
-        .botoes-menu { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
-        .botao { padding: 12px 25px; background: linear-gradient(45deg, #ff4757, #ff6b81); color: white; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4); text-decoration: none; display: inline-block; }
-        .botao:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(255, 71, 87, 0.6); }
-        .botao-jogo { background: linear-gradient(45deg, #1e90ff, #70a1ff); box-shadow: 0 4px 15px rgba(30, 144, 255, 0.4); }
-        .botao-voltar { background: #576574; box-shadow: none; margin-bottom: 20px; }
-
-        .tag-destaque { background-color: var(--cor-secundaria); color: #111; font-size: 11px; padding: 5px 10px; border-radius: 12px; margin-left: 8px; font-weight: 900; text-transform: uppercase; box-shadow: 0 0 10px var(--cor-secundaria); }
-
-        .grade-fotos { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
-        .foto-card { width: 200px; height: 250px; overflow: hidden; border-radius: 15px; border: 2px solid rgba(255,255,255,0.1); position: relative; }
-        .foto-card img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-        .foto-card:hover img { transform: scale(1.1); }
-
-        .jogo-casal { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 40px 0; }
-        .slot { width: 180px; height: 230px; background: rgba(0,0,0,0.5); border: 3px dashed #555; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .slot img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .slot span { font-size: 18px; font-weight: bold; color: #888; z-index: 2; text-align: center; }
-        .sinal-mais { font-size: 40px; font-weight: bold; color: var(--cor-principal); text-shadow: 0 0 10px var(--cor-principal); }
-
-        .girando { animation: tremer 0.1s infinite; border-color: var(--cor-secundaria) !important; box-shadow: 0 0 20px var(--cor-secundaria) !important; }
-        @keyframes tremer { 0% { transform: translate(1px, 1px) rotate(0deg); } 50% { transform: translate(-1px, -2px) rotate(-1deg); } 100% { transform: translate(-2px, 1px) rotate(1deg); } }
-
-        @media (max-width: 600px) {
-            .container { padding: 10px; }
-            .tela { padding: 15px; }
-            h1 { font-size: 1.8em; }
-            #pesquisa { width: 95%; padding: 12px; }
-            .botoes-menu { flex-direction: column; width: 100%; }
-            .botao { width: 100%; box-sizing: border-box; }
-            .jogo-casal { flex-direction: row; gap: 10px; flex-wrap: nowrap; }
-            .slot { width: 120px; height: 160px; }
-            .slot span { font-size: 12px; }
-            .sinal-mais { font-size: 30px; margin: 0 5px; }
-            .foto-card { width: 140px; height: 180px; }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="patrocinadores">
-        <marquee behavior="scroll" direction="left" scrollamount="8">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg" alt="Nike">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" alt="Netflix">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Apple_logo_grey.svg" alt="Apple">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg" alt="Adidas">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Coca-Cola_logo.svg" alt="Coca-Cola">
-        </marquee>
-    </div>
-
-    <div class="container">
-        <div id="menu" class="tela tela-ativa">
-            <h1>🔥 Galeria VIP 🔥</h1>
-            <div class="botoes-menu">
-                <button class="botao botao-jogo" onclick="mudarTela('tela-jogos')">🎮 Área de Jogos</button>
-            </div>
-            <input type="text" id="pesquisa" placeholder="Pesquisar por nome..." onkeyup="filtrarNomes()">
-            <div id="lista-links" class="grade-fotos"></div>
-        </div>
-
-        <div id="tela-jogos" class="tela">
-            <a class="botao botao-voltar" onclick="mudarTela('menu')">⬅ Voltar</a>
-            <h1>💖 Quem será o Casal? 💖</h1>
-            <div class="jogo-casal">
-                <div class="slot" id="slot1"><span>[Sem foto]</span><img id="img-slot1" src="" alt="Pessoa 1"></div>
-                <div class="sinal-mais">❤</div>
-                <div class="slot" id="slot2"><span>[Sem foto]</span><img id="img-slot2" src="" alt="Pessoa 2"></div>
-            </div>
-            <button class="botao botao-jogo" id="btn-girar" onclick="girarCasal()" style="font-size: 18px; padding: 15px; width: 100%;">GIRAR ROLETA 🎲</button>
-        </div>
-
-        <div id="area-fotos"></div>
-    </div>
-
-    <script>
-        const dados = {
-            "Fotos Aleatorias": ["Fotos/Desconhecido.jpeg", "Fotos/Desconhecido2.jpeg", "Fotos/Desconhecido3.jpeg", "Fotos/Desconhecido4.jpeg", "Fotos/Desconhecido5.jpeg", "Fotos/Desconhecido6.jpeg", "Fotos/Desconhecido7.jpeg", "Fotos/Desconhecido8.jpeg", "Fotos/Desconhecido9.jpeg"],
-            "Ligia": ["Fotos/Ligia.jpeg", "Fotos/Ligia2.jpeg", "Fotos/Ligia3.jpeg", "Fotos/Ligia4.jpeg", "Fotos/Ligia5.jpeg"],
-            "Gabriel": ["Fotos/Capacete.jpeg", "Fotos/Capacete2.jpeg"],
-            "Lia": ["Fotos/Lia.jpeg", "Fotos/Lia2.jpeg","Fotos/Lia3.jpeg", "Fotos/Lia e Melissa.jpeg", "Fotos/Lia4.jpeg", "Fotos/Lia5.jpeg", "Fotos/Lia6.jpeg"],
-            "Izake": ["Fotos/Izake.jpeg", "Fotos/Izake2.jpeg", "Fotos/Izake3.jpeg", "Fotos/Izake4.jpeg"],
-            "Paulo": ["Fotos/Paulo.jpeg"],
-            "Jasmim": ["Fotos/Jasmim.jpeg", "Fotos/Jasmim2.jpeg", "Fotos/Jasmim3.jpeg", "Fotos/Jasmim4.jpeg", "Fotos/Jasmim5.jpeg"],
-            "Lara": ["Fotos/Lara.jpeg", "Fotos/Lara2.jpeg", "Fotos/Lara3.jpeg", "Fotos/Lara4.jpeg"],
-            "Melissa": ["Fotos/Lia e Melissa.jpeg"],
-            "Juliana": ["Fotos/Juliana.jpeg", "Fotos/Juliana2.jpeg", "Fotos/Juliana3.jpeg", "Fotos/Juliana4.jpeg", "Fotos/Juliana5.jpeg"],
-            "Jupar": ["Fotos/Jupar.jpeg"],
-            "Davi": ["Fotos/Davi.jpeg"],
-            "Clarisse": ["Fotos/Clarisse.jpeg"],
-            "Carol": ["Fotos/Carol.jpeg"],
-            "Julia": ["Fotos/Julia.jpeg"],
-            "Alexicia": ["Fotos/Alexicia.jpeg"],
-            "Levi": ["Fotos/Levi.jpeg"],
-            "Maxsuel": ["Fotos/Maxsuel.jpeg"]
-        };
-
-        const menu = document.getElementById('lista-links');
-        const area = document.getElementById('area-fotos');
-
-        for (let nome in dados) {
-            let nomeExibicao = nome.replace(/\[(.*?)\]/g, '<span class="tag-destaque">$1</span>');
-            let idNome = nome.replace(/[^a-zA-Z0-9]/g, "");
-            menu.innerHTML += `<a class="botao item-nome" style="margin: 5px; width: auto;" onclick="mudarTela('${idNome}')">${nomeExibicao}</a>`;
-            let htmlFotos = `<div id="${idNome}" class="tela">
-                                <a class="botao botao-voltar" onclick="mudarTela('menu')">⬅ Voltar</a>
-                                <h2>Álbum de ${nomeExibicao}</h2>
-                                <div class="grade-fotos">`;
-            dados[nome].forEach(link => { htmlFotos += `<div class="foto-card"><img src="${link}" onerror="this.src='https://via.placeholder.com/200x250?text=Sem+Foto'"></div>`; });
-            htmlFotos += `</div></div>`;
-            area.innerHTML += htmlFotos;
-        }
-
-        function mudarTela(id) {
-            document.querySelectorAll('.tela').forEach(t => t.classList.remove('tela-ativa'));
-            document.getElementById(id).classList.add('tela-ativa');
-            if(id === 'menu') { document.getElementById('pesquisa').value = ''; filtrarNomes(); }
-        }
-
-        function filtrarNomes() {
-            let input = document.getElementById('pesquisa').value.toLowerCase();
-            document.querySelectorAll('.item-nome').forEach(el => {
-                // Modificado para startsWith
-                el.style.display = (el.textContent.toLowerCase().startsWith(input)) ? "inline-block" : "none";
-            });
-        }
-
-        let girando = false;
-        function girarCasal() {
-            if (girando) return;
-            const chaves = Object.keys(dados);
-            if (chaves.length < 2) return;
-
-            girando = true;
-            document.getElementById('btn-girar').innerText = "GIRANDO... ⏳";
-
-            const img1 = document.getElementById('img-slot1');
-            const img2 = document.getElementById('img-slot2');
-            img1.src = "https://via.placeholder.com/200x250?text=Girando";
-            img2.src = "https://via.placeholder.com/200x250?text=Girando";
-
-            document.getElementById('slot1').querySelector('span').style.display = 'none';
-            document.getElementById('slot2').querySelector('span').style.display = 'none';
-            img1.style.display = 'block'; img2.style.display = 'block';
-
-            document.getElementById('slot1').classList.add('girando');
-            document.getElementById('slot2').classList.add('girando');
-
-            let chave1 = chaves[Math.floor(Math.random() * chaves.length)];
-            let chave2;
-            do { chave2 = chaves[Math.floor(Math.random() * chaves.length)]; } while (chave1 === chave2);
-
-            let intervalo1 = setInterval(() => { img1.src = dados[chaves[Math.floor(Math.random() * chaves.length)]][0]; }, 100);
-            let intervalo2 = setInterval(() => { img2.src = dados[chaves[Math.floor(Math.random() * chaves.length)]][0]; }, 100);
-
-            setTimeout(() => { clearInterval(intervalo1); img1.src = dados[chave1][Math.floor(Math.random() * dados[chave1].length)]; document.getElementById('slot1').classList.remove('girando'); }, 2000);
-            setTimeout(() => { clearInterval(intervalo2); img2.src = dados[chave2][Math.floor(Math.random() * dados[chave2].length)]; document.getElementById('slot2').classList.remove('girando'); document.getElementById('btn-girar').innerText = "NOVO CASAL? GIRAR! 🎲"; girando = false; }, 4000);
-        }
-    </script>
-
-
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     const sb = supabase.createClient('https://qhcmokmkgzvdwkygiekg.supabase.co', 'sb_publishable_JorRZtpYrnZXn4sSaSzodA_GBx3-r99');
     let timerRanking = null;
@@ -197,12 +10,11 @@
         localStorage.setItem('user_id', deviceId);
     }
 
-    // Cria a tela de Ranking
+    // Cria a tela de Ranking (SEM O TÍTULO)
     if (!document.getElementById('tela-ranking')) {
         document.querySelector('.container').insertAdjacentHTML('beforeend',
             '<div id="tela-ranking" class="tela">' +
                 '<a class="botao botao-voltar" onclick="mudarTela(\'menu\')">⬅ Voltar</a>' +
-                '<h2>🔥 Quem é mais bonito? 🔥</h2>' +
                 '<div id="lista-ranking"></div>' +
             '</div>'
         );
@@ -241,6 +53,7 @@
         btn.disabled = true;
         btn.innerText = "Verificando...";
 
+        // 1. Verifica no servidor se o dispositivo já existe no registro
         const { data: jaVotou } = await sb.from('votos_registrados').select('id_dispositivo').eq('id_dispositivo', deviceId);
 
         if (jaVotou && jaVotou.length > 0) {
@@ -252,20 +65,21 @@
         btn.innerText = "Votando...";
         const navInfo = navigator.userAgent;
 
+        // 2. Registra o voto
         const { data: atual } = await sb.from('ranking').select('votos').eq('nome', nome).single();
         const novoVoto = (atual ? atual.votos : 0) + 1;
 
         await sb.from('ranking').update({ votos: novoVoto }).eq('nome', nome);
         await sb.from('votos_registrados').insert([{ id_dispositivo: deviceId, user_agent: navInfo }]);
 
+        // 3. Feedback visual
         document.getElementById(`votos-${idAlbum}`).innerText = novoVoto + " votos";
         btn.innerText = "Votado ✅";
 
+        // 4. Só reordena o ranking após 5 segundos de inatividade
         clearTimeout(timerRanking);
         timerRanking = setTimeout(atualizarRanking, 5000);
     }
 
     atualizarRanking();
 </script>
-</body>
-</html>
