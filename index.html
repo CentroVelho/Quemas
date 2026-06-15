@@ -101,7 +101,7 @@
     <script>
         const dados = {
             "Fotos Aleatorias": ["Fotos/Desconhecido.jpeg", "Fotos/Desconhecido2.jpeg", "Fotos/Desconhecido3.jpeg", "Fotos/Desconhecido4.jpeg", "Fotos/Desconhecido5.jpeg", "Fotos/Desconhecido6.jpeg", "Fotos/Desconhecido7.jpeg", "Fotos/Desconhecido8.jpeg", "Fotos/Desconhecido9.jpeg"],
-            "Ligia": ["Fotos/Ligia.jpeg", "Fotos/Ligia2.jpeg", "Fotos/Ligia3.jpeg", "Fotos/Ligia4.jpeg", "Fotos/Ligia5.jpeg"],
+            "Ligia": ["Fotos/Ligia.jpeg", "Fotos/Ligia2.jpeg", "Fotos/Ligia3.jpeg"],
             "Gabriel": ["Fotos/Capacete.jpeg", "Fotos/Capacete2.jpeg"],
             "Lia": ["Fotos/Lia.jpeg", "Fotos/Lia2.jpeg","Fotos/Lia3.jpeg", "Fotos/Lia e Melissa.jpeg", "Fotos/Lia4.jpeg", "Fotos/Lia5.jpeg", "Fotos/Lia6.jpeg"],
             "Izake": ["Fotos/Izake.jpeg", "Fotos/Izake2.jpeg", "Fotos/Izake3.jpeg", "Fotos/Izake4.jpeg"],
@@ -182,5 +182,61 @@
             setTimeout(() => { clearInterval(intervalo2); img2.src = dados[chave2][Math.floor(Math.random() * dados[chave2].length)]; document.getElementById('slot2').classList.remove('girando'); document.getElementById('btn-girar').innerText = "NOVO CASAL? GIRAR! 🎲"; girando = false; }, 4000);
         }
     </script>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const sb = supabase.createClient('https://qhcmokmkgzvdwkygiekg.supabase.co', 'sb_publishable_JorRZtpYrnZXn4sSaSzodA_GBx3-r99');
+
+    document.querySelector('.container').insertAdjacentHTML('beforeend', '<div id="tela-ranking" class="tela"><h2>🏆 Ranking</h2><div id="lista-ranking"></div></div>');
+    document.querySelector('.botoes-menu').insertAdjacentHTML('beforeend', '<button class="botao" onclick="mudarTela(\'tela-ranking\')">🏆 Tabela</button>');
+
+    async function atualizarRanking() {
+        const { data } = await sb.from('ranking').select('*').order('votos', { ascending: false });
+        let html = '';
+
+        data.forEach((p, index) => {
+            let idAlbum = p.nome.replace(/[^a-zA-Z0-9]/g, "");
+            let posicao = index + 1; // Pega o número real da posição
+
+            // Estilos e destaque (Medalha ou Número)
+            let estilo = (index === 0) ? "background: linear-gradient(45deg, #ffd700, #ff8c00); color: #000; transform: scale(1.05);" :
+                         (index === 1) ? "background: #c0c0c0; color: #000;" :
+                         (index === 2) ? "background: #cd7f32; color: #fff;" : "background: #333; color: #fff;";
+
+            let destaque = (index === 0) ? "👑 1º LUGAR" :
+                           (index === 1) ? "🥈 2º LUGAR" :
+                           (index === 2) ? "🥉 3º LUGAR" : `📍 ${posicao}º LUGAR`;
+
+            html += `
+            <div class="card" style="${estilo} margin:15px 0; padding:15px; border-radius:15px; font-weight:bold;">
+                <div style="font-size: 0.8em;">${destaque}</div>
+                <div style="margin:10px 0; font-size: 1.2em;">${p.nome}: <b>${p.votos} votos</b></div>
+                <div style="display:flex; gap:10px; justify-content:center;">
+                    <button class="botao" onclick="votar(this, '${p.nome}', ${p.votos})">⭐ Votar</button>
+                    <button class="botao" style="background: #2ed573;" onclick="mudarTela('${idAlbum}')">📸 Ver Fotos</button>
+                </div>
+            </div>`;
+        });
+        document.getElementById('lista-ranking').innerHTML = html;
+    }
+
+    async function votar(btn, nome, v) {
+        // Feedback visual instantâneo
+        btn.innerText = "Votando...";
+        btn.disabled = true;
+        const novoVoto = v + 1;
+        btn.parentElement.parentElement.querySelector('b').innerText = novoVoto + " votos";
+
+        // Atualiza Supabase
+        await sb.from('ranking').update({ votos: novoVoto }).eq('nome', nome);
+
+        // Recarrega lista apenas após um pequeno delay para não travar
+        setTimeout(atualizarRanking, 500);
+    }
+
+    atualizarRanking();
+</script>
 </body>
 </html>
