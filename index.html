@@ -29,6 +29,14 @@
         .botao-jogo { background: linear-gradient(45deg, #1e90ff, #70a1ff); box-shadow: 0 4px 15px rgba(30, 144, 255, 0.4); }
         .botao-voltar { background: #576574; box-shadow: none; margin-bottom: 20px; }
 
+        /* DESTAQUE GIGANTE TABELA */
+        .botao-tabela { font-size: 1.5em; padding: 20px 40px; background: linear-gradient(45deg, #ff9f43, #ee5253); border: 3px solid #fff; width: 100%; box-shadow: 0 0 25px rgba(238, 82, 83, 0.8); animation: pulsarTabela 1s infinite alternate; }
+        @keyframes pulsarTabela { 0% { transform: scale(1); box-shadow: 0 0 15px rgba(238, 82, 83, 0.6); } 100% { transform: scale(1.05); box-shadow: 0 0 30px rgba(238, 82, 83, 1); text-shadow: 0 0 10px #fff; } }
+
+        /* DESTAQUE BOTÃO VOTAR */
+        .destaque-votar { animation: piscarVoto 1s infinite alternate; }
+        @keyframes piscarVoto { 0% { background: linear-gradient(45deg, #ff4757, #ff6b81); } 100% { background: linear-gradient(45deg, #ff9f43, #feca57); transform: scale(1.1); box-shadow: 0 0 20px #ff9f43; } }
+
         .tag-destaque { background-color: var(--cor-secundaria); color: #111; font-size: 11px; padding: 5px 10px; border-radius: 12px; margin-left: 8px; font-weight: 900; text-transform: uppercase; box-shadow: 0 0 10px var(--cor-secundaria); }
 
         .grade-fotos { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
@@ -52,6 +60,7 @@
             #pesquisa { width: 95%; padding: 12px; }
             .botoes-menu { flex-direction: column; width: 100%; }
             .botao { width: 100%; box-sizing: border-box; }
+            .botao-tabela { font-size: 1.2em; padding: 15px; }
             .jogo-casal { flex-direction: row; gap: 10px; flex-wrap: nowrap; }
             .slot { width: 120px; height: 160px; }
             .slot span { font-size: 12px; }
@@ -98,6 +107,7 @@
         <div id="area-fotos"></div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const dados = {
             "Fotos Aleatorias": ["Fotos/Desconhecido.jpeg", "Fotos/Desconhecido2.jpeg", "Fotos/Desconhecido3.jpeg", "Fotos/Desconhecido4.jpeg", "Fotos/Desconhecido5.jpeg", "Fotos/Desconhecido6.jpeg", "Fotos/Desconhecido7.jpeg", "Fotos/Desconhecido8.jpeg", "Fotos/Desconhecido9.jpeg"],
@@ -125,7 +135,9 @@
 
         for (let nome in dados) {
             let nomeExibicao = nome.replace(/\[(.*?)\]/g, '<span class="tag-destaque">$1</span>');
-            let idNome = nome.replace(/[^a-zA-Z0-9]/g, "");
+            // CORREÇÃO: Remove a tag [Mais 1 foto] antes de gerar o ID para bater com o banco de dados
+            let idNome = nome.replace(/\[.*?\]/g, "").replace(/[^a-zA-Z0-9]/g, "");
+            
             menu.innerHTML += `<a class="botao item-nome" style="margin: 5px; width: auto;" onclick="mudarTela('${idNome}')">${nomeExibicao}</a>`;
             let htmlFotos = `<div id="${idNome}" class="tela">
                                 <a class="botao botao-voltar" onclick="mudarTela('menu')">⬅ Voltar</a>
@@ -137,15 +149,19 @@
         }
 
         function mudarTela(id) {
-            document.querySelectorAll('.tela').forEach(t => t.classList.remove('tela-ativa'));
-            document.getElementById(id).classList.add('tela-ativa');
+            let telaDestino = document.getElementById(id);
+            if(telaDestino) {
+                document.querySelectorAll('.tela').forEach(t => t.classList.remove('tela-ativa'));
+                telaDestino.classList.add('tela-ativa');
+            } else {
+                alert("Álbum não encontrado!");
+            }
             if(id === 'menu') { document.getElementById('pesquisa').value = ''; filtrarNomes(); }
         }
 
         function filtrarNomes() {
             let input = document.getElementById('pesquisa').value.toLowerCase();
             document.querySelectorAll('.item-nome').forEach(el => {
-                // Modificado para startsWith
                 el.style.display = (el.textContent.toLowerCase().startsWith(input)) ? "inline-block" : "none";
             });
         }
@@ -181,94 +197,87 @@
             setTimeout(() => { clearInterval(intervalo1); img1.src = dados[chave1][Math.floor(Math.random() * dados[chave1].length)]; document.getElementById('slot1').classList.remove('girando'); }, 2000);
             setTimeout(() => { clearInterval(intervalo2); img2.src = dados[chave2][Math.floor(Math.random() * dados[chave2].length)]; document.getElementById('slot2').classList.remove('girando'); document.getElementById('btn-girar').innerText = "NOVO CASAL? GIRAR! 🎲"; girando = false; }, 4000);
         }
-    </script>
 
+        // SUPABASE E RANKING
+        const sb = supabase.createClient('https://qhcmokmkgzvdwkygiekg.supabase.co', 'sb_publishable_JorRZtpYrnZXn4sSaSzodA_GBx3-r99');
+        let timerRanking = null;
 
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-    const sb = supabase.createClient('https://qhcmokmkgzvdwkygiekg.supabase.co', 'sb_publishable_JorRZtpYrnZXn4sSaSzodA_GBx3-r99');
-    let timerRanking = null;
-
-    // Gera um ID persistente ou recupera do localStorage
-    let deviceId = localStorage.getItem('user_id');
-    if (!deviceId) {
-        deviceId = 'device_' + Math.random().toString(36).substr(2, 9) + Date.now();
-        localStorage.setItem('user_id', deviceId);
-    }
-
-    // Cria a tela de Ranking (SEM O TÍTULO)
-    if (!document.getElementById('tela-ranking')) {
-        document.querySelector('.container').insertAdjacentHTML('beforeend',
-            '<div id="tela-ranking" class="tela">' +
-                '<a class="botao botao-voltar" onclick="mudarTela(\'menu\')">⬅ Voltar</a>' +
-                '<div id="lista-ranking"></div>' +
-            '</div>'
-        );
-        document.querySelector('.botoes-menu').insertAdjacentHTML('beforeend', '<button class="botao" onclick="mudarTela(\'tela-ranking\')">🏆 Tabela</button>');
-    }
-
-    // Função que desenha o ranking e coloca os botões
-    async function atualizarRanking() {
-        const { data } = await sb.from('ranking').select('*').order('votos', { ascending: false });
-        if (!data) return;
-
-        let html = '';
-        data.forEach((p, index) => {
-            let idAlbum = p.nome.replace(/[^a-zA-Z0-9]/g, "");
-            let posicao = index + 1;
-            let estilo = (index === 0) ? "background: linear-gradient(45deg, #ffd700, #ff8c00); color: #000; transform: scale(1.05);" :
-                         (index === 1) ? "background: #c0c0c0; color: #000;" :
-                         (index === 2) ? "background: #cd7f32; color: #fff;" : "background: #333; color: #fff;";
-            let destaque = (index === 0) ? "👑 1º LUGAR" : (index === 1) ? "🥈 2º LUGAR" : (index === 2) ? "🥉 3º LUGAR" : `📍 ${posicao}º LUGAR`;
-
-            html += `
-            <div class="card" id="card-${idAlbum}" style="${estilo} margin:15px 0; padding:15px; border-radius:15px; font-weight:bold;">
-                <div style="font-size: 0.8em; margin-bottom:5px;">${destaque}</div>
-                <div style="margin:5px 0; font-size: 1.2em;">${p.nome}: <b id="votos-${idAlbum}">${p.votos} votos</b></div>
-                <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
-                    <button class="botao" id="btn-${idAlbum}" onclick="votar(this, '${p.nome}', '${idAlbum}')">⭐ Votar</button>
-                    <button class="botao" style="background: #2ed573;" onclick="mudarTela('${idAlbum}')">📸 Ver Fotos</button>
-                </div>
-            </div>`;
-        });
-        document.getElementById('lista-ranking').innerHTML = html;
-    }
-
-    // Função de votação blindada
-    async function votar(btn, nome, idAlbum) {
-        btn.disabled = true;
-        btn.innerText = "Verificando...";
-
-        // 1. Verifica no servidor se o dispositivo já existe no registro
-        const { data: jaVotou } = await sb.from('votos_registrados').select('id_dispositivo').eq('id_dispositivo', deviceId);
-
-        if (jaVotou && jaVotou.length > 0) {
-            alert("Você já votou! Agradecemos sua participação.");
-            btn.innerText = "Votado ✅";
-            return;
+        let deviceId = localStorage.getItem('user_id');
+        if (!deviceId) {
+            deviceId = 'device_' + Math.random().toString(36).substr(2, 9) + Date.now();
+            localStorage.setItem('user_id', deviceId);
         }
 
-        btn.innerText = "Votando...";
-        const navInfo = navigator.userAgent;
+        if (!document.getElementById('tela-ranking')) {
+            document.querySelector('.container').insertAdjacentHTML('beforeend',
+                '<div id="tela-ranking" class="tela">' +
+                    '<a class="botao botao-voltar" onclick="mudarTela(\'menu\')">⬅ Voltar</a>' +
+                    '<div id="lista-ranking"></div>' +
+                '</div>'
+            );
+            // Botão Gigante com Setas adicionado AQUI
+            document.querySelector('.botoes-menu').insertAdjacentHTML('beforeend', '<button class="botao botao-tabela" onclick="mudarTela(\'tela-ranking\')">➔ 🏆 ACESSAR TABELA DE VOTAÇÃO ⬅</button>');
+        }
 
-        // 2. Registra o voto
-        const { data: atual } = await sb.from('ranking').select('votos').eq('nome', nome).single();
-        const novoVoto = (atual ? atual.votos : 0) + 1;
+        async function atualizarRanking() {
+            const { data } = await sb.from('ranking').select('*').order('votos', { ascending: false });
+            if (!data) return;
 
-        await sb.from('ranking').update({ votos: novoVoto }).eq('nome', nome);
-        await sb.from('votos_registrados').insert([{ id_dispositivo: deviceId, user_agent: navInfo }]);
+            let html = '';
+            data.forEach((p, index) => {
+                let idAlbum = p.nome.replace(/[^a-zA-Z0-9]/g, "");
+                let posicao = index + 1;
+                let estilo = (index === 0) ? "background: linear-gradient(45deg, #ffd700, #ff8c00); color: #000; transform: scale(1.05);" :
+                             (index === 1) ? "background: #c0c0c0; color: #000;" :
+                             (index === 2) ? "background: #cd7f32; color: #fff;" : "background: #333; color: #fff;";
+                let destaque = (index === 0) ? "👑 1º LUGAR" : (index === 1) ? "🥈 2º LUGAR" : (index === 2) ? "🥉 3º LUGAR" : `📍 ${posicao}º LUGAR`;
 
-        // 3. Feedback visual
-        document.getElementById(`votos-${idAlbum}`).innerText = novoVoto + " votos";
-        btn.innerText = "Votado ✅";
+                html += `
+                <div class="card" id="card-${idAlbum}" style="${estilo} margin:15px 0; padding:15px; border-radius:15px; font-weight:bold;">
+                    <div style="font-size: 0.8em; margin-bottom:5px;">${destaque}</div>
+                    <div style="margin:5px 0; font-size: 1.2em;">${p.nome}: <b id="votos-${idAlbum}">${p.votos} votos</b></div>
+                    <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
+                        <button class="botao destaque-votar" id="btn-${idAlbum}" onclick="votar(this, '${p.nome}', '${idAlbum}')">⭐ Votar</button>
+                        <button class="botao" style="background: #2ed573;" onclick="mudarTela('${idAlbum}')">📸 Ver Fotos</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('lista-ranking').innerHTML = html;
+        }
 
-        // 4. Só reordena o ranking após 5 segundos de inatividade
-        clearTimeout(timerRanking);
-        timerRanking = setTimeout(atualizarRanking, 5000);
-    }
+        async function votar(btn, nome, idAlbum) {
+            btn.disabled = true;
+            btn.innerText = "Verificando...";
 
-    atualizarRanking();
-</script>
+            const { data: jaVotou } = await sb.from('votos_registrados').select('id_dispositivo').eq('id_dispositivo', deviceId);
+
+            if (jaVotou && jaVotou.length > 0) {
+                alert("Você já votou! Agradecemos sua participação.");
+                btn.innerText = "Votado ✅";
+                btn.classList.remove('destaque-votar');
+                btn.style.background = "#555";
+                return;
+            }
+
+            btn.innerText = "Votando...";
+            const navInfo = navigator.userAgent;
+
+            const { data: atual } = await sb.from('ranking').select('votos').eq('nome', nome).single();
+            const novoVoto = (atual ? atual.votos : 0) + 1;
+
+            await sb.from('ranking').update({ votos: novoVoto }).eq('nome', nome);
+            await sb.from('votos_registrados').insert([{ id_dispositivo: deviceId, user_agent: navInfo }]);
+
+            document.getElementById(`votos-${idAlbum}`).innerText = novoVoto + " votos";
+            btn.innerText = "Votado ✅";
+            btn.classList.remove('destaque-votar');
+            btn.style.background = "#555";
+
+            clearTimeout(timerRanking);
+            timerRanking = setTimeout(atualizarRanking, 5000);
+        }
+
+        atualizarRanking();
+    </script>
 </body>
 </html>
